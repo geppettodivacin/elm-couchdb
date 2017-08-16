@@ -48,7 +48,7 @@ init =
 
 type Msg
   = Retrieved Document
-  | Error 
+  | Error Http.Error
   | Fetch
 
 
@@ -67,7 +67,7 @@ fetchCmd =
           Retrieved doc
 
         Err error ->
-          Debug.log (toString error) error |> always Error
+          Debug.log (toString error) error |> Error
   in
     Http.send parseResult req
 
@@ -81,7 +81,7 @@ update msg model =
     Fetch ->
       (model, fetchCmd)
 
-    Error ->
+    Error _ ->
       ({model | doc = Nothing}, Cmd.none)
 
 
