@@ -67,7 +67,7 @@ fetchCmd =
           Retrieved doc
 
         Err error ->
-          Debug.log (toString error) error |> Error
+          Debug.log "Error" error |> Error
   in
     Http.send parseResult req
 
@@ -91,6 +91,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ h1  [] [ text (toString model.doc) ]
+    [ text (toString model.doc)
+    , br [] []
     , button [ onClick Fetch ] [ text "Fetch" ]
     ]
