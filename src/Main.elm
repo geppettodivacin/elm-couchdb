@@ -3,6 +3,7 @@ import Json.Encode as Encode
 import Html exposing (..)
 import Html.Events exposing (..)
 import Http
+import Task
 
 import Couchdb exposing (..)
 
@@ -20,7 +21,7 @@ main =
 
 
 type alias Model =
-  { doc : Maybe Document
+  { docs : Maybe (List (Couchdb.Row String String))
   }
 
 
@@ -47,7 +48,7 @@ init =
 
 
 type Msg
-  = Retrieved Document
+  = Retrieved (List (Couchdb.Row String String))
   | Error Http.Error
   | Fetch
 
@@ -55,16 +56,22 @@ type Msg
 fetchCmd : Cmd Msg
 fetchCmd =
   let
-    config = Config "localhost:5984" "elm-example"
+    config =
+      Config "localhost:5984" "elm-example"
 
-    id = "fetchdoc"
+    designName =
+      "designs"
 
-    req = fetch docDecoder config id
+    viewName =
+      "values"
+
+    req =
+      Couchdb.view Decode.string Decode.string config designName viewName
 
     parseResult result =
       case result of
-        Ok doc ->
-          Retrieved doc
+        Ok docs ->
+          Retrieved docs
 
         Err error ->
           Debug.log "Error" error |> Error
@@ -75,14 +82,14 @@ fetchCmd =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    Retrieved doc ->
-      ({model | doc = Just doc}, Cmd.none)
+    Retrieved docs ->
+      ({model | docs = Just docs}, Cmd.none)
     
     Fetch ->
       (model, fetchCmd)
 
     Error _ ->
-      ({model | doc = Nothing}, Cmd.none)
+      ({model | docs = Nothing}, Cmd.none)
 
 
 -- VIEW
@@ -91,7 +98,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
   div []
-    [ text (toString model.doc)
+    [ text (toString model.docs)
     , br [] []
     , button [ onClick Fetch ] [ text "Fetch" ]
     ]
