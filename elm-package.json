@@ -1,5 +1,5 @@
 {
-    "version": "0.0.1",
+    "version": "1.0.0",
     "summary": "CouchDB Elm Bindings",
     "repository": "https://github.com/geppettodivacin/elm-couchdb.git",
     "license": "BSD3",
