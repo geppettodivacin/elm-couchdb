@@ -1,6 +1,8 @@
 module Couchdb.View exposing (Settings, settings, key, start_key, end_key, viewWith, specialViewWith)
 
-{-|-}
+{-|
+@docs Settings, settings, key, start_key, end_key, viewWith, specialViewWith
+-}
 import Http
 import Json.Encode as Encode
 import Json.Decode as Decode
