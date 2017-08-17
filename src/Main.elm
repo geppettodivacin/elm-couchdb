@@ -6,6 +6,7 @@ import Http
 import Task
 
 import Couchdb exposing (..)
+import Couchdb.View as View
 
 
 main =
@@ -57,7 +58,7 @@ fetchCmd : Cmd Msg
 fetchCmd =
   let
     config =
-      Config "localhost:5984" "elm-example"
+      defineDb "localhost:5984" "elm-example"
 
     designName =
       "designs"
@@ -65,8 +66,16 @@ fetchCmd =
     viewName =
       "values"
 
+    settings =
+      View.settings |> View.key (Encode.string "fetchdoc")
+
     req =
-      Couchdb.view Decode.string Decode.string config designName viewName
+      View.viewWith settings
+        Decode.string
+        Decode.string
+        config
+        designName
+        viewName
 
     parseResult result =
       case result of

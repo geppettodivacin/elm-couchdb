@@ -1,21 +1,27 @@
-module Couchdb exposing (Config, Row, fetch, specialView, view, store)
+module Couchdb exposing (Config, Row, defineDb, fetch, specialView, view, store)
+
+{-|
+@docs Config, Row, defineDb, fetch, specialView, view, store
+-}
 
 import Http
 import Json.Decode as Decode
 import Json.Encode as Encode
 
-
-type alias Config =
-    { host : String
-    , db : String
-    }
+import Couchdb.Internal exposing (..)
+import Couchdb.View as View
 
 
-makePath : List String -> String
-makePath parts =
-  String.concat (List.intersperse "/" parts)
+{-|-}
+type alias Config = Couchdb.Internal.Config
+{-|-}
+type alias Row key value = Couchdb.Internal.Row key value
+{-|-}
+defineDb : String -> String -> Config
+defineDb = Couchdb.Internal.defineDb
 
 
+{-|-}
 fetch :
   Decode.Decoder a
   -> Config
@@ -29,37 +35,18 @@ fetch decoder config key =
     Http.get fetchAddr decoder
 
 
-type alias Row key value = 
-    { id : String
-    , key : key
-    , value : value
-    }
-
-
+{-|-}
 specialView :
   Decode.Decoder key
   -> Decode.Decoder value
   -> Config
   -> String
   -> Http.Request (List (Row key value))
-specialView keyDecoder valueDecoder config viewPath =
-  let
-    fetchAddr =
-      makePath [configString config, viewPath]
-
-    viewDecoder =
-      let
-        rowDecoder =
-          Decode.map3 Row
-            (Decode.field "id" Decode.string)
-            (Decode.field "key" keyDecoder)
-            (Decode.field "value" valueDecoder)
-      in
-        Decode.field "rows" (Decode.list rowDecoder)
-  in
-    Http.get fetchAddr viewDecoder
+specialView =
+  View.specialViewWith View.settings
 
 
+{-|-}
 view :
   Decode.Decoder key
   -> Decode.Decoder value
@@ -67,19 +54,11 @@ view :
   -> String
   -> String
   -> Http.Request (List (Row key value))
-view keyDecoder valueDecoder config designName viewName =
-  let
-    viewPath =
-      makePath
-        [ "_design"
-        , designName
-        , "_view"
-        , viewName
-        ]
-  in
-    specialView keyDecoder valueDecoder config viewPath
+view =
+  View.viewWith View.settings
 
 
+{-|-}
 store :
   (a -> Encode.Value)
   -> Config
@@ -93,8 +72,3 @@ store encode config key value =
     body = Http.jsonBody (encode value)
   in
     Http.post postAddr body Decode.string
-
-
-configString : Config -> String
-configString config =
-  "http://" ++ config.host ++ "/" ++ config.db
