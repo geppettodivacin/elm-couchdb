@@ -66,11 +66,11 @@ fetchCmd =
     viewName =
       "values"
 
-    settings =
-      View.settings |> View.key (Encode.string "fetchdoc")
+    options =
+      View.initOptions |> View.key (Encode.string "fetchdoc")
 
     req =
-      View.viewWith settings
+      View.viewWith options
         Decode.string
         Decode.string
         config
